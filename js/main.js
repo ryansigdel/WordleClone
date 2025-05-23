@@ -399,6 +399,8 @@ document.addEventListener('DOMContentLoaded', () => {
   
     createBoard();
     pickNewWord();
+
+
   
     // On-screen keyboard
     document.querySelectorAll('.keyboard-row button').forEach(key => {
@@ -483,6 +485,24 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById(String(availableSpace)).textContent = '';
       }
     }
+
+    //Add a function that changes the on-screen keyboard color after it is guessed, slighter darker grey
+    function updateKeyboard(letter) {
+      const btn = document.querySelector(`button[data-key="${letter}"]`);
+      if (!btn) return;
+      btn.classList.add('animate__animated', 'animate__flipInX');
+      btn.addEventListener('animationend', () => {
+      btn.classList.remove('animate__flipInX');
+  }, { once: true });
+      
+      btn.style.backgroundColor = 'rgb(40, 40, 40)';
+      btn.style.borderColor     = 'rgb(55, 55, 56)';
+      btn.style.color           = '#fff';
+      btn.style.opacity         = '0.8';
+      btn.disabled              = true;    // optional: greys out in some browsers
+      btn.style.pointerEvents   = 'none';  // optional: prevent clicking
+    }
+    
   
 
     function revealGuess(row) {
@@ -523,8 +543,10 @@ document.addEventListener('DOMContentLoaded', () => {
           tile.classList.add('animate__flipInX');
           tile.style.backgroundColor = colors[idx];
           tile.style.borderColor = colors[idx];
+          updateKeyboard(letter);
         }, idx * 250);
       });
+      
     
       guessedWordCount++;
     
