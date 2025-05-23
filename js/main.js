@@ -406,7 +406,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const k = target.getAttribute('data-key');
         if (k === 'enter') {
           handleSubmitWord();
-        } else if (k === 'backspace') {
+        } else if (k === 'del') {
           deleteLetter();
         } else {
           addLetter(k);
@@ -472,6 +472,8 @@ document.addEventListener('DOMContentLoaded', () => {
         availableSpace++;
       }
     }
+
+
   
     function deleteLetter() {
       const row = getCurrentRow();
@@ -482,33 +484,60 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
   
-    function getTileColor(idx, letter) {
-      if (word[idx] === letter)       return 'rgb(83, 141, 78)';
-      if (word.includes(letter))      return 'rgb(181, 159, 59)';
-      return 'rgb(58, 58, 60)';
-    }
 
     function revealGuess(row) {
       const startId = guessedWordCount * 5 + 1;
+    
+      // 1) Build a frequency map of letters in the target word
+      const letterCount = {};
+      for (const ch of word) {
+        letterCount[ch] = (letterCount[ch] || 0) + 1;
+      }
+    
+      // 2) Prepare an array to hold each tile’s final color
+      const colors = new Array(5);
+    
+      // First pass: greens
+      row.forEach((letter, idx) => {
+        if (word[idx] === letter) {
+          colors[idx] = 'rgb(83, 141, 78)'; // green
+          letterCount[letter]--;
+        }
+      });
+    
+      // Second pass: yellows and grays
+      row.forEach((letter, idx) => {
+        if (colors[idx]) return;      // already green
+        if (letterCount[letter] > 0) {
+          colors[idx] = 'rgb(181, 159, 59)'; // yellow
+          letterCount[letter]--;
+        } else {
+          colors[idx] = 'rgb(58, 58, 60)';   // gray
+        }
+      });
+    
+      // 3) Animate and apply styles
       row.forEach((letter, idx) => {
         setTimeout(() => {
           const tile = document.getElementById(String(startId + idx));
-          const color = getTileColor(idx, letter);
           tile.classList.add('animate__flipInX');
-          tile.style.backgroundColor = color;
-          tile.style.borderColor = color;
-        }, idx * 250); //250ms delay for each letter
+          tile.style.backgroundColor = colors[idx];
+          tile.style.borderColor = colors[idx];
+        }, idx * 250);
       });
+    
       guessedWordCount++;
+    
       if (row.join('') === word) {
         return alert('Congratulations!');
       }
       if (guessedWordCount === 6) {
         return alert(`No more guesses – the word was “${word}.”`);
       }
+    
       guessWords.push([]);
     }
-  
+    
     function handleSubmitWord() {
       const row = getCurrentRow();
       if (row.length !== 5) {
